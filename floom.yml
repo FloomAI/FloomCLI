@@ -1,0 +1,11 @@
+# FloomEngine
+
+FloomEngines:
+    -
+        name: fe-dev
+        url: http://localhost:4050/
+        apiKey: Vcm6RReBMLQa0h2fUidOC7SLmh356uHH
+    -
+        name: fe-prod
+        url: https://10.0.0.6/
+        apiKey: 36h36h36h36h36h3
