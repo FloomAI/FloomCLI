@@ -9,6 +9,7 @@ import termcolor2
 import colorama
 from tqdm import tqdm
 import time
+from requests.exceptions import RequestException
 
 colorama.init()
 
@@ -46,18 +47,22 @@ def upload_file(engine, filepath):
     
     print(termcolor2.colored(f"Uploading file '{filepath}'...", 'yellow'))
     
-    response = requests.post(url, files=files, headers=headers)
-
+    try:
+        response = requests.post(url, files=files, headers=headers)
+        if response.status_code == 200:
+            #print (f"returning {json.loads(response.text)['fileId']}")
+            return json.loads(response.text)['fileId']
+        else:
+            print("Failed to upload file.")
+            exit(1)
+    except RequestException:
+        print(termcolor2.colored(f"Failed connecting to Floom '{engine['name']}'", "red"))
+        exit(1)
     # Debugging lines
     #print(f"Status Code: {response.status_code}")
     #print(f"Response Text: {response.text}")
 
-    if response.status_code == 200:
-        #print (f"returning {json.loads(response.text)['fileId']}")
-        return json.loads(response.text)['fileId']
-    else:
-        print("Failed to upload file.")
-        exit(1)
+  
 
 
 def apply_yaml(engine, yaml_content):
@@ -70,13 +75,16 @@ def apply_yaml(engine, yaml_content):
         'Api-Key': f"{engine['apiKey']}"  
     }
     
-    response = requests.post(url, data=yaml.dump(yaml_content), headers=headers)
+    try:
+        response = requests.post(url, data=yaml.dump(yaml_content), headers=headers)
+        return response.status_code == 200
+    except RequestException:
+        print(termcolor2.colored(f"Failed connecting to Floom '{engine['name']}'", "red"))
+        exit(1)
     
     # Debugging lines
     # print(f"Status Code: {response.status_code}")
-    # print(f"Response Text: {response.text}")
-    
-    return response.status_code == 200
+    # print(f"Response Text: {response.text}")   
 
 def apply_file(args, config):
     file_path = args.file
@@ -121,7 +129,7 @@ def apply_directory(args, config):
     
 
     engine = get_engine(args, config)  # Assuming get_engine is a function you've defined elsewhere
-    print(termcolor2.colored(f"Using engine '{engine['name']}'",'cyan'))
+    print(termcolor2.colored(f"Using Floom '{engine['name']}'",'cyan'))
 
     # Pre-defined order of kinds
     order = ['VectorStore', 'Embeddings', 'Data', 'Model', 'Prompt', 'Response', 'Pipeline']
