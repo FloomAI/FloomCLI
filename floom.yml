@@ -1,6 +1,6 @@
-# FloomEngine
+# Flooms
 
-FloomEngines:
+Flooms:
     -
         name: fe-dev
         url: http://localhost:4050/

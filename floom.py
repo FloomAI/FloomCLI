@@ -32,18 +32,18 @@ def load_config():
             print(exc)
             exit(1)
 
-def get_engine(args, config):
-    engine_name = args.engine or config['FloomEngines'][0]['name']
-    for engine in config['FloomEngines']:
-        if engine['name'] == engine_name:
-            return engine
-    print(f"Engine '{engine_name}' not found in configuration.")
+def get_floom(args, config):
+    floom_name = args.floom or config['Flooms'][0]['name']
+    for floom in config['Flooms']:
+        if floom['name'] == floom_name:
+            return floom
+    print(f"Engine '{floom_name}' not found in configuration.")
     exit(1)
 
-def upload_file(engine, filepath):
-    url = f"{engine['url']}v1/Files"
+def upload_file(floom, filepath):
+    url = f"{floom['url']}v1/Files"
     files = {'file': open(filepath, 'rb')}
-    headers = {'Api-Key': f"{engine['apiKey']}"}
+    headers = {'Api-Key': f"{floom['apiKey']}"}
     
     print(termcolor2.colored(f"Uploading file '{filepath}'...", 'yellow'))
     
@@ -56,7 +56,7 @@ def upload_file(engine, filepath):
             print("Failed to upload file.")
             exit(1)
     except RequestException:
-        print(termcolor2.colored(f"Failed connecting to Floom '{engine['name']}'", "red"))
+        print(termcolor2.colored(f"Failed connecting to Floom '{floom['name']}'", "red"))
         exit(1)
     # Debugging lines
     #print(f"Status Code: {response.status_code}")
@@ -65,21 +65,21 @@ def upload_file(engine, filepath):
   
 
 
-def apply_yaml(engine, yaml_content):
+def apply_yaml(floom, yaml_content):
     kind = yaml_content['kind']
     api_kind = kind_to_api_mapping.get(kind, kind)  # convert to plural/API format
     
-    url = f"{engine['url']}v1/{api_kind}/Apply"
+    url = f"{floom['url']}v1/{api_kind}/Apply"
     headers = {
         'Content-Type': 'text/yaml',
-        'Api-Key': f"{engine['apiKey']}"  
+        'Api-Key': f"{floom['apiKey']}"  
     }
     
     try:
         response = requests.post(url, data=yaml.dump(yaml_content), headers=headers)
         return response.status_code == 200
     except RequestException:
-        print(termcolor2.colored(f"Failed connecting to Floom '{engine['name']}'", "red"))
+        print(termcolor2.colored(f"Failed connecting to Floom '{floom['name']}'", "red"))
         exit(1)
     
     # Debugging lines
@@ -94,7 +94,7 @@ def apply_file(args, config):
         print(termcolor2.colored(f"Error: YAML file '{file_path}' not found.", 'red'))
         exit(1)
 
-    engine = get_engine(args, config)
+    floom = get_floom(args, config)
     
    
     with open(file_path, 'r') as yaml_file:
@@ -104,12 +104,12 @@ def apply_file(args, config):
         if not os.path.exists(yaml_content['path']):
             print(f"File {yaml_content['path']} not found.")
             exit(1)
-        file_id = upload_file(engine, yaml_content['path'])
+        file_id = upload_file(floom, yaml_content['path'])
         yaml_content['fileId'] = file_id
         yaml_content.pop('path', None)
         #print (yaml_content)
 
-    if apply_yaml(engine, yaml_content):
+    if apply_yaml(floom, yaml_content):
         print(termcolor2.colored(f"{yaml_content['kind']} '{yaml_content['id']}' ('{file_path}') applied successfully.", 'green'))
 
     else:
@@ -128,8 +128,8 @@ def apply_directory(args, config):
         exit(1)
     
 
-    engine = get_engine(args, config)  # Assuming get_engine is a function you've defined elsewhere
-    print(termcolor2.colored(f"Using Floom '{engine['name']}'",'cyan'))
+    floom = get_floom(args, config)  # Assuming get_floom is a function you've defined elsewhere
+    print(termcolor2.colored(f"Using Floom '{floom['name']}'",'cyan'))
 
     # Pre-defined order of kinds
     order = ['VectorStore', 'Embeddings', 'Data', 'Model', 'Prompt', 'Response', 'Pipeline']
@@ -155,25 +155,25 @@ def apply_directory(args, config):
     # Apply files in sorted order
     for kind, obj_id, yaml_file in files_to_apply:
         print(termcolor2.colored(f"Applying {kind} '{obj_id}' ('{yaml_file}')...", 'yellow'))
-        apply_file(argparse.Namespace(file=yaml_file, engine=engine['name']), config)
+        apply_file(argparse.Namespace(file=yaml_file, floom=floom['name']), config)
         
 def list_pipelines(args, config):
-    engine = get_engine(args, config)
-    url = f"{engine['url']}v1/Pipelines/List"
+    floom = get_floom(args, config)
+    url = f"{floom['url']}v1/Pipelines/List"
     response = requests.get(url)
     print(response.text)
 
 def get_pipeline(args, config):
-    engine = get_engine(args, config)
-    url = f"{engine['url']}v1/Pipelines/Get"
+    floom = get_floom(args, config)
+    url = f"{floom['url']}v1/Pipelines/Get"
     payload = json.dumps({'name': args.name})
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url, data=payload, headers=headers)
     print(response.text)
 
 def delete_pipeline(args, config):
-    engine = get_engine(args, config)
-    url = f"{engine['url']}v1/Pipelines/Delete"
+    floom = get_floom(args, config)
+    url = f"{floom['url']}v1/Pipelines/Delete"
     payload = json.dumps({'name': args.name})
     headers = {'Content-Type': 'application/json'}
     response = requests.post(url, data=payload, headers=headers)
@@ -194,14 +194,14 @@ def main():
     parser_apply = subparsers.add_parser('apply', help='Apply yaml configuration.')
     parser_apply.add_argument('-f', '--file', help='File to apply')
     parser_apply.add_argument('-d', '--directory', help='Directory to apply')
-    parser_apply.add_argument('-e', '--engine', help='Engine name')
+    parser_apply.add_argument('-e', '--floom', help='Engine name')
     parser_apply.set_defaults(func=apply_file if '-f' in sys.argv or '--file' in sys.argv else apply_directory)
 
     # Subparser for the 'pipelines' command
     parser_pipelines = subparsers.add_parser('pipelines', help='Manage pipelines.')
     parser_pipelines_sub = parser_pipelines.add_subparsers()
     parser_pipelines_list = parser_pipelines_sub.add_parser('list', help='List pipelines.')
-    parser_pipelines_list.add_argument('-e', '--engine', help='Engine name')
+    parser_pipelines_list.add_argument('-e', '--floom', help='Engine name')
     parser_pipelines_list.set_defaults(func=list_pipelines)
     parser_pipelines_get = parser_pipelines_sub.add_parser('get', help='Get pipeline.')
     parser_pipelines_get.add_argument('-n', '--name', required=True, help='Pipeline name')
