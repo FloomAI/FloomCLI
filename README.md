@@ -21,8 +21,13 @@ Floom CLI is a powerful command-line interface designed to simplify the configur
 
 
 
-## Installation
+## Getting Started
 
+To get started with Floom CLI v1.0, you can install it by downloading the latest release from our [GitHub Releases page](https://floom.ai) or by using our installation script:
+
+```bash
+sh -c "$(curl -fsSL https://get.floom.ai/install.sh)"
+```
 
 
 ### Prerequisites
