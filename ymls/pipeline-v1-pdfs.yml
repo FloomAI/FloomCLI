@@ -1,0 +1,21 @@
+kind: 'floom/pipeline/1.2'
+
+pipeline:
+  name: pipeline-multiple-pdfs
+
+  model:
+    - package: floom/model/connector/openai
+      model: gpt-3.5-turbo
+      apiKey: sk-1234567890abcdefg=
+
+  prompt:
+    context:
+      - package: floom/prompt/context/pdf
+        path:
+          - /absolute/path/to/pdf-1.pdf
+          - /absolute/path/to/pdf-2.pdf
+
+  response:
+    format:
+      - package: floom/response/formatter
+        type: text

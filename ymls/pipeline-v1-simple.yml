@@ -1,0 +1,25 @@
+kind: 'floom/pipeline/1.2'
+
+pipeline:
+  name: pipeline-idm-docs1
+
+  model:
+    - package: floom/model/connector/openai
+      model: gpt-3.5
+      apiKey: sk-1234567890abcdefg=
+
+  prompt:
+    template:
+      package: floom/prompt/template/default
+
+    context:
+      - package: floom/prompt/context/pdf
+        path: /Users/user/Documents/1 Series (F20, E82, E88)_BMW Handbook - 1 Series_0312.pdf
+
+  response:
+    format:
+      - package: floom/response/formatter
+        type: text
+        language: en
+        max-sentences: 20
+        max-characters: 10000
