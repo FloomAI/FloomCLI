@@ -153,7 +153,7 @@ func deploy(deploymentType string, yamlFile string) {
 
 	// Assuming GetConfig() and Username retrieval based on updated config structure
 	deploymentConfig, exists := appConfig.Deployments[deploymentType]
-	if !exists {
+	if deploymentType != "local" && !exists {
 		fmt.Println("Deployment type not found in configuration")
 		return
 	}
@@ -164,23 +164,25 @@ func deploy(deploymentType string, yamlFile string) {
 
 	// Print success message, pipeline URL, and instructions for making HTTP POST request
 	fmt.Printf("Pipeline '%s' deployed successfully.\n", FloomYaml.Pipeline.Name)
-	fmt.Println("Pipeline URL:", pipelineURL)
-	fmt.Println("You can send an HTTP POST request to this URL with the following headers:")
-	fmt.Println("API-Key:", apiKey)
-	fmt.Println("Content-Type: application/json")
-	fmt.Println("In the request body, include a JSON with a 'prompt' field, for example:")
-	fmt.Println(`{"prompt": "Your prompt example here"}`)
 
-	// Construct the pipeline URL for cloud deployments
-	var port *int // Set to nil by default, indicating cloud deployment or irrelevant port
-	if deploymentType != "cloud" {
-		// For non-cloud deployments, you might have a specific port to use
-		// Example: port = new(int); *port = 8080
+	if deploymentType == "cloud" {
+		fmt.Println("Pipeline URL:", pipelineURL)
+		fmt.Println("You can send an HTTP POST request to this URL with the following headers:")
+		fmt.Println("API-Key:", apiKey)
+		fmt.Println("Content-Type: application/json")
+		fmt.Println("In the request body, include a JSON with a 'prompt' field, for example:")
+		fmt.Println(`{"prompt": "Your prompt example here"}`)
+
+		// Construct the pipeline URL for cloud deployments
+		var port *int // Set to nil by default, indicating cloud deployment or irrelevant port
+		if deploymentType != "cloud" {
+			// For non-cloud deployments, you might have a specific port to use
+			// Example: port = new(int); *port = 8080
+		}
+
+		// Add the pipeline to the configuration
+		appConfig.AddOrUpdatePipeline(deploymentType, FloomYaml.Pipeline.Name, pipelineURL, port)
 	}
-
-	// Add the pipeline to the configuration
-	appConfig.AddOrUpdatePipeline(deploymentType, FloomYaml.Pipeline.Name, pipelineURL, port)
-
 }
 
 func init() {

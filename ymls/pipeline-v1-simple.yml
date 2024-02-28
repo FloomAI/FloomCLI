@@ -12,10 +12,6 @@ pipeline:
     template:
       package: floom/prompt/template/default
 
-    context:
-      - package: floom/prompt/context/pdf
-        path: /Users/user/Documents/1 Series (F20, E82, E88)_BMW Handbook - 1 Series_0312.pdf
-
   response:
     format:
       - package: floom/response/formatter

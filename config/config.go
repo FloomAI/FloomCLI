@@ -236,6 +236,10 @@ func UpdateUserConfig(apiKey, username, nickname, deploymentType string) error {
 func GetApiKeyForDeployment(deploymentType string) (string, error) {
 	appConfig := GetConfig() // Assuming GetConfig() fetches the current AppConfig instance.
 
+	if deploymentType == "local" {
+		return "", nil
+	}
+
 	// Check if the deployment exists in the appConfig
 	deploymentConfig, exists := appConfig.Deployments[deploymentType]
 	if !exists {

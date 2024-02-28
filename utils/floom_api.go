@@ -76,9 +76,14 @@ func RegisterUser(deploymentType string) (UserRegistrationResponse, error) {
 
 func UploadFile(deploymentType, filePath string) (string, error) {
 
-	apiKey, err := config.GetApiKeyForDeployment(deploymentType)
-	if err != nil {
-		return "", err
+	var apiKey string
+	var err error
+
+	if deploymentType == "cloud" {
+		apiKey, err = config.GetApiKeyForDeployment(deploymentType)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	// Open the file to be sent
@@ -118,7 +123,9 @@ func UploadFile(deploymentType, filePath string) (string, error) {
 	// Set the content type header, including the boundary
 	req.Header.Set("Content-Type", multiPartWriter.FormDataContentType())
 	// Set the API key header
-	req.Header.Set("Api-Key", apiKey)
+	if apiKey != "" {
+		req.Header.Set("Api-Key", apiKey)
+	}
 
 	// Send the request
 	client := &http.Client{}
